@@ -302,10 +302,10 @@ body {
   // ---- Paints: three transparent watercolour pigments ----
   // 'full' is the colour each pigment gives at a typical stroke's density; absorption is derived from it,
   // so diluted paint stays clear and saturated, and dense paint deepens. 'gran' is how much it granulates.
-  // India ink: dense carbon black. Thin washes go a soft, slightly cool grey.
+  // Sap green: thin washes a fresh, pale spring green; dense strokes a rich leaf green.
   // To bring back a palette, add more pigments here (up to three) and the swatches reappear in the top bar.
   const PIGMENTS = [
-    { name: 'India ink', swatch: '#1B1A17', full: [0.10, 0.108, 0.135], gran: 0.8 },
+    { name: 'Sap green', swatch: '#8DBB6A', full: [0.60, 0.81, 0.42], gran: 0.9 },
   ];
   const REF_DENSITY = 0.3;
   const KMAT = new Float32Array(9);   // column i = absorption of pigment i
