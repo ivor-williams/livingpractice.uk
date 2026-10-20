@@ -10,6 +10,7 @@
 <meta property="og:title" content="Living Practice">
 <meta property="og:description" content="Living well – through to its very end – is something we practise, not something we arrive at.">
 <meta name="theme-color" content="#F1ECE3">
+<link rel="preload" href="fonts/ABCArizonaFlareCondensed-Regular.woff" as="font" type="font/woff" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@500&family=Instrument+Serif&display=swap">
@@ -17,15 +18,15 @@
 /* Layout (from Figma "Holding page"): top bar at the top; one-line wordmark fitted
    edge-to-edge inside the gutter, cap height at its top, the tail of the g on the bottom edge. */
 
-/* Wordmark face: ABC Arizona Flare Condensed if installed on this machine.
-   For the live site, add your licensed web font file first in this list, e.g.
-   src: url("fonts/ABCArizonaFlareCondensed-Regular.woff2") format("woff2"), local(...); */
+/* Wordmark face: ABC Arizona Flare Condensed Regular (licensed web font, in /fonts). */
 @font-face {
   font-family: "LP Wordmark";
-  src: local("ABC Arizona Flare Condensed"),
-       local("ABC Arizona Flare Condensed Regular"),
+  src: url("fonts/ABCArizonaFlareCondensed-Regular.woff") format("woff"),
+       local("ABC Arizona Flare Condensed"),
        local("ABCArizonaFlareCondensed-Regular");
-  font-display: swap;
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
 }
 
 :root {
