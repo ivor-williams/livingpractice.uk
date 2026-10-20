@@ -1,0 +1,1043 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}</style>
+<title>Living Practice</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Living Practice Ltd. Living well – through to its very end – is something we practise, not something we arrive at.">
+<meta property="og:title" content="Living Practice">
+<meta property="og:description" content="Living well – through to its very end – is something we practise, not something we arrive at.">
+<meta name="theme-color" content="#F1ECE3">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@500&family=Instrument+Serif&display=swap">
+<style>
+/* Layout (from Figma "Holding page"): top bar at the top; one-line wordmark fitted
+   edge-to-edge inside the gutter, cap height at its top, the tail of the g on the bottom edge. */
+
+/* Wordmark face: ABC Arizona Flare Condensed if installed on this machine.
+   For the live site, add your licensed web font file first in this list, e.g.
+   src: url("fonts/ABCArizonaFlareCondensed-Regular.woff2") format("woff2"), local(...); */
+@font-face {
+  font-family: "LP Wordmark";
+  src: local("ABC Arizona Flare Condensed"),
+       local("ABC Arizona Flare Condensed Regular"),
+       local("ABCArizonaFlareCondensed-Regular");
+  font-display: swap;
+}
+
+:root {
+  --ground: #F1ECE3;   /* Colour/Ground */
+  --ink: #1B1A17;      /* Colour/Ink */
+  --muted: #6E6A62;    /* Colour/Muted */
+  --font-wordmark: "LP Wordmark", "Instrument Serif", Georgia, serif;
+  --font-body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --gutter: 32px;      /* Desktop — 1440 */
+  --wm-gap: clamp(6px, 0.9vw, 16px);  /* space between the tail of the g and the bottom edge */
+  color-scheme: light;
+}
+@media (max-width: 600px) { :root { --gutter: 16px; } }  /* Mobile — 390 */
+
+html, body { height: 100%; }
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Sketchbook: the whole window is paper. The canvas sits under the type; the type lets the pencil through. */
+#paper {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 0;
+  touch-action: none;
+}
+.page {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+  box-sizing: border-box;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 48px;
+  padding-left: max(var(--gutter), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--gutter), env(safe-area-inset-right, 0px));
+  padding-block: var(--gutter) var(--wm-gap);
+  overflow: hidden;
+}
+
+/* Text/Small: Instrument Sans Medium 14 / 140%, +1% tracking */
+.top {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1.4;
+}
+.top .contact { color: var(--muted); text-decoration: none; pointer-events: auto; cursor: pointer; }
+.top .contact:hover { color: var(--ink); }
+.top .contact:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 2px; }
+
+/* OpenType features from Figma: Desktop SS01 + SS03 (+ ONUM, PNUM); Mobile SS01 + SS02 + SS03 */
+.wordmark {
+  margin: 0;
+  font-family: var(--font-wordmark);
+  font-weight: 400;
+  color: var(--ink);
+  font-feature-settings: "ss01" 1, "ss03" 1, "onum" 1, "pnum" 1;
+}
+@media (max-width: 600px) {
+  .wordmark { font-feature-settings: "ss01" 1, "ss02" 1, "ss03" 1; }
+}
+.wordmark .probe { position: absolute; visibility: hidden; white-space: nowrap; left: 0; top: 0; }
+.wordmark .line { position: relative; display: block; white-space: nowrap; }
+.wordmark .line > span { position: absolute; left: 0; top: 0; }
+.wordmark:not(.ready) { visibility: hidden; }
+[hidden] { display: none !important; }
+
+/* Purpose line under the name: on hover, keyboard focus, or a tap on touch screens */
+.name-hover { position: relative; pointer-events: auto; cursor: default; outline: none; }
+.name-hover:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 2px; }
+.lp-line {
+  position: absolute; left: 0; top: calc(100% + 6px);
+  width: max-content; max-width: min(40ch, calc(100vw - 2 * var(--gutter)));
+  text-wrap: balance;
+  color: var(--muted);
+  opacity: 0; transform: translateY(-3px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  pointer-events: none;
+}
+.name-hover:hover .lp-line, .name-hover:focus .lp-line, .name-hover.open .lp-line { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .lp-line { transition: none; } }
+@media (max-width: 600px) { .lp-line { max-width: calc(100vw - 2 * var(--gutter) - 140px); } }
+
+/* Palette */
+.top { align-items: center; }
+.palette { display: flex; align-items: center; gap: 10px; pointer-events: auto; cursor: default; }
+.palette .swatch {
+  width: 20px; height: 20px; border-radius: 50%; border: 0; padding: 0; cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(27, 26, 23, 0.18);
+}
+.palette .swatch[aria-checked="true"] { outline: 1.5px solid var(--ink); outline-offset: 3px; }
+.palette .swatch:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.palette .name { color: var(--muted); margin-left: 4px; }
+@media (max-width: 600px) { .palette .name { display: none; } }
+
+</style>
+</head>
+<body>
+
+<canvas id="paper" aria-label="Sketchbook page. Press and drag to draw in pencil."></canvas>
+
+<main class="page">
+  <header class="top">
+    <span class="name-hover" id="lp-name" tabindex="0" aria-describedby="lp-line">Living Practice Ltd<span class="lp-line" id="lp-line" role="tooltip">Living well – through to its very end – is something we practise, not something we arrive at.</span></span>
+    <div class="palette" id="palette" role="radiogroup" aria-label="Paint colour" hidden></div>
+    <a class="contact" href="mailto:mail@ivorwilliams.info">Contact</a>
+  </header>
+
+  <h1 class="wordmark" id="wordmark" aria-label="Living Practice"></h1>
+</main>
+
+<script>
+(() => {
+  const TEXT = 'Living Practice';
+  // Tracking from Figma: −1% on Mobile (390), −4% on Desktop (1440), eased in between.
+  const TRACK = { narrow: { w: 390, em: -0.01 }, wide: { w: 1440, em: -0.04 } };
+
+  const el = document.getElementById('wordmark');
+  const ctx = document.createElement('canvas').getContext('2d');
+  const family = getComputedStyle(el).fontFamily;
+
+  function trackingFor(vw) {
+    const t = Math.min(1, Math.max(0, (vw - TRACK.narrow.w) / (TRACK.wide.w - TRACK.narrow.w)));
+    return TRACK.narrow.em + t * (TRACK.wide.em - TRACK.narrow.em);
+  }
+
+  function layout() {
+    const width = el.clientWidth;
+    if (!width) return;
+    const ls = trackingFor(window.innerWidth);
+    const n = [...TEXT].length;
+
+    const REF = 100;
+    // Width is measured in the page itself, so the stylistic sets are applied.
+    const probe = document.createElement('span');
+    probe.className = 'probe';
+    probe.textContent = TEXT;
+    probe.style.fontSize = `${REF}px`;
+    probe.style.letterSpacing = `${ls}em`;
+    el.appendChild(probe);
+    const advance = probe.getBoundingClientRect().width - ls * REF;   // drop tracking after the last letter
+    probe.remove();
+
+    // Side bearings of the first and last letters, and vertical extents, from canvas.
+    ctx.font = `400 ${REF}px ${family}`;
+    const first = ctx.measureText(TEXT[0]);
+    const last = ctx.measureText(TEXT[n - 1]);
+    const lb = -first.actualBoundingBoxLeft;                    // gap before the L's ink
+    const rb = last.width - last.actualBoundingBoxRight;        // gap after the e's ink
+    const inkW = (advance - lb - rb) / REF;                     // in em, at this tracking
+    const size = width / inkW;
+
+    const k = size / REF;
+    const caps = ctx.measureText('LP');
+    const g = ctx.measureText('g');
+    const m = ctx.measureText(TEXT);
+    const capA = caps.actualBoundingBoxAscent * k;   // cap height (Figma: vertical trim to cap height)
+    const inkD = g.actualBoundingBoxDescent * k;     // bottom of the g
+    const fA = m.fontBoundingBoxAscent * k, fD = m.fontBoundingBoxDescent * k;
+    const baselineInBox = (size - (fA + fD)) / 2 + fA;   // baseline within a line box of height = size
+
+    const line = document.createElement('span');
+    line.className = 'line';
+    line.style.height = `${capA + inkD}px`;
+    const span = document.createElement('span');
+    span.textContent = TEXT;
+    span.setAttribute('aria-hidden', 'true');
+    span.style.fontSize = `${size}px`;
+    span.style.lineHeight = `${size}px`;
+    span.style.letterSpacing = `${ls}em`;
+    span.style.top = `${capA - baselineInBox}px`;
+    span.style.left = `${-lb * k}px`;
+    line.appendChild(span);
+    el.replaceChildren(line);
+    el.classList.add('ready');
+  }
+
+  let raf;
+  const schedule = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(layout); };
+  new ResizeObserver(schedule).observe(el);
+  window.addEventListener('resize', schedule);
+
+  const fontsReady = document.fonts
+    ? Promise.all([
+        document.fonts.load('100px "LP Wordmark"').catch(() => {}),
+        document.fonts.load('100px "Instrument Serif"').catch(() => {})
+      ]).then(() => document.fonts.ready)
+    : Promise.resolve();
+  fontsReady.then(layout, layout);
+  layout();
+})();
+</script>
+
+<script>
+/* ---------- Ink on watercolour paper ----------
+   A small GPU simulation after Curtis et al. (1997, "Computer-Generated Watercolor") and
+   Chu & Tai (2005, "MoXi: Real-time ink dispersion in absorbent paper"):
+   - water sits on the paper and flows within wet areas (shallow-water style velocity field)
+   - water seeps into dry paper only along fibres, past a per-fibre threshold, so edges feather
+   - ink rides with the water but is filtered by the fibres, leaving a pale halo beyond the line
+   - water evaporates fastest at the edges and carries ink there, so edges dry darker
+   - ink settles into the paper's hollows as it dries (granulation)
+   - damp paper takes water easily, so new strokes over drying ones bloom and backrun
+   State per cell: water, ink in the water, ink in the paper, dampness. */
+(() => {
+  // ---- Tunables (the look) ----
+  const T = {
+    substeps: 3,
+    dCap: 0.11,        // capillary seepage rate between neighbouring cells
+    thrBase: 0.088,    // water depth needed to wet dry paper
+    thrFibre: 0.02,    // extra depth needed away from fibres
+    dampEase: 0.82,    // how much easier damp paper takes water (0–1)
+    filter: 0.55,      // ink carried by seeping water relative to the water (fibres hold ink back)
+    grav: 0.55,        // flow from differences in water depth
+    slope: 0.07,       // flow from the paper's surface (pooling in the hollows)
+    edgePush: 0.11,    // outward flow at the edges (edge darkening)
+    visc: 0.22,        // smoothing of the flow
+    damp: 0.88,        // flow damping per step
+    maxV: 0.7,         // fastest flow, cells per step
+    evap: 0.00034,     // evaporation per step
+    edgeEvap: 2.2,     // extra evaporation at the edge of a wet area
+    dep: 0.0016,       // ink settling per step while wet
+    gran: 0.007,       // extra settling in the paper's hollows
+    edgeDep: 4,        // extra settling at the edge
+    lift: 0.0012,      // ink lifted back up by re-wetting
+    dampDecay: 0.0005, // how fast dampness leaves the paper after it dries
+    strength: 1,       // colour strength (multiplies each pigment's absorption)
+    granVis: 0.55,     // how strongly the paper texture shows in the ink
+  };
+  const IDLE_MS = 30000;   // stop simulating this long after the last mark (everything is dry)
+
+  // ---- Feature check on a scratch canvas, so the page canvas stays free for the pencil fallback ----
+  function supported() {
+    try {
+      const t = document.createElement('canvas').getContext('webgl2');
+      return !!(t && t.getExtension('EXT_color_buffer_float'));
+    } catch (_) { return false; }
+  }
+  if (!supported()) return;
+
+  const cv = document.getElementById('paper');
+  const gl = cv.getContext('webgl2', { alpha: false, antialias: false, premultipliedAlpha: false, preserveDrawingBuffer: false });
+  if (!gl || !gl.getExtension('EXT_color_buffer_float')) return;
+  window.__inkReady = true;
+
+  // ---- Pen cursor (same drawing as before, point sized to an ink line) ----
+  // Cursor: a solid black pill, tapering slightly to its point (the hotspot)
+  function setCursor() {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><g transform="rotate(-45 20 20)"><path d="M-3.5 17.8 L37 15.9 A4.1 4.1 0 0 1 37 24.1 L-3.5 22.2 A2.2 2.2 0 0 1 -3.5 17.8 Z" fill="#111" stroke="#F1ECE3" stroke-opacity="0.85" stroke-width="1.2" paint-order="stroke" stroke-linejoin="round"/></g></svg>`;
+    const c = `url("data:image/svg+xml,${encodeURIComponent(svg)}") 2 38, crosshair`;
+    cv.style.cursor = c; document.documentElement.style.cursor = c;
+  }
+
+
+  // ---- Paints: three transparent watercolour pigments ----
+  // 'full' is the colour each pigment gives at a typical stroke's density; absorption is derived from it,
+  // so diluted paint stays clear and saturated, and dense paint deepens. 'gran' is how much it granulates.
+  // Living Practice orange (#FF6B35). Thin washes stay bright; dense paint deepens toward burnt orange.
+  // To bring back a palette, add more pigments here (up to three) and the swatches reappear in the top bar.
+  const PIGMENTS = [
+    { name: 'Living Practice orange', swatch: '#FF6B35', full: [0.97, 0.52, 0.26], gran: 0.7 },
+  ];
+  const REF_DENSITY = 0.3;
+  const KMAT = new Float32Array(9);   // column i = absorption of pigment i
+  PIGMENTS.forEach((pg, i) => pg.full.forEach((v, ch) => { KMAT[i * 3 + ch] = -Math.log(v) / REF_DENSITY; }));
+  const GRAN_PIG = new Float32Array([0, 1, 2].map(i => PIGMENTS[i] ? PIGMENTS[i].gran : 1));
+  let pigment = 0;
+  setCursor(PIGMENTS[0].swatch);
+
+  // ---- GLSL ----
+  const VS = `#version 300 es
+  in vec2 pos; void main(){ gl_Position = vec4(pos, 0.0, 1.0); }`;
+
+  const COMMON = `#version 300 es
+  precision highp float; precision highp int; precision highp sampler2D;
+  vec4 at(sampler2D t, ivec2 q){ ivec2 r = textureSize(t, 0); return texelFetch(t, clamp(q, ivec2(0), r - 1), 0); }
+  vec4 bil(sampler2D t, vec2 p){
+    vec2 q = p - 0.5; vec2 f = fract(q); ivec2 i = ivec2(floor(q));
+    return mix(mix(at(t, i), at(t, i + ivec2(1, 0)), f.x), mix(at(t, i + ivec2(0, 1)), at(t, i + ivec2(1, 1)), f.x), f.y);
+  }
+  float hash(vec2 p){ vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
+  float vnoise(vec2 p){ vec2 i = floor(p), f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
+    return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y); }
+  float fbm(vec2 p){ float a = 0.5, s = 0.0; for (int i = 0; i < 5; i++){ s += a * vnoise(p); p = p * 2.02 + 17.13; a *= 0.5; } return s / 0.97; }
+  `;
+
+  // Paper: cold-press surface (h), fibre network (fib), permeability (k), fine speckle (n). Coordinates in CSS px from the top-left.
+  const PAPER_FN = `
+  float fibres(vec2 p){
+    float f = 0.0;
+    for (int i = 0; i < 4; i++){
+      float a = float(i) * 0.785 + 0.3 + 0.6 * vnoise(p * 0.004 + float(i) * 9.1);
+      mat2 r = mat2(cos(a), -sin(a), sin(a), cos(a));
+      vec2 q = r * p;
+      float n = vnoise(vec2(q.x * 0.13, q.y * 0.9) + float(i) * 31.7);
+      f = max(f, smoothstep(0.6, 0.9, n));
+    }
+    return f;
+  }
+  vec4 paper(vec2 p){
+    float h = 0.5 * fbm(p * 0.055) + 0.35 * fbm(p * 0.21 + 7.0) + 0.15 * vnoise(p * 0.9);
+    float fib = fibres(p);
+    float k = 0.45 + 0.55 * fib;
+    return vec4(h, k, fib, 0.78 * fbm(p * 0.06 + 3.1) + 0.22 * fbm(p * 0.2 + 9.7));
+  }`;
+
+  const FS_PAPER = COMMON + PAPER_FN + `
+  uniform float scale; uniform float cssH; out vec4 o;
+  void main(){ vec2 css = vec2(gl_FragCoord.x, 0.0) / scale; css.y = cssH - gl_FragCoord.y / scale; o = paper(css); }`;
+
+  // Render-resolution paper shading (8-bit, filtered): shade, fine grain
+  const FS_SHADE = COMMON + PAPER_FN + `
+  uniform float res; uniform float cssH; out vec4 o;
+  void main(){
+    vec2 css = vec2(gl_FragCoord.x / res, cssH - gl_FragCoord.y / res);
+    float h = paper(css).x;
+    float hx = paper(css + vec2(0.8, 0.0)).x - paper(css - vec2(0.8, 0.0)).x;
+    float hy = paper(css + vec2(0.0, 0.8)).x - paper(css - vec2(0.0, 0.8)).x;
+    vec3 n = normalize(vec3(-hx * 2.2, hy * 2.2, 1.0));
+    float light = dot(n, normalize(vec3(-0.5, 0.6, 0.65)));
+    o = vec4(light, h, vnoise(css * 1.7), 1.0);
+  }`;
+
+  const FS_SPLAT_A = COMMON + `
+  uniform sampler2D A, Sp, P; uniform int n; uniform vec4 seg[16]; uniform vec4 prm[16]; uniform vec3 pig;
+  layout(location = 0) out vec4 oA; layout(location = 1) out vec4 oS;
+  float sdSeg(vec2 p, vec2 a, vec2 b){ vec2 pa = p - a, ba = b - a; float h = clamp(dot(pa, ba) / max(dot(ba, ba), 1e-6), 0.0, 1.0); return length(pa - ba * h); }
+  void main(){
+    ivec2 c = ivec2(gl_FragCoord.xy); vec2 p = gl_FragCoord.xy;
+    vec4 a = at(A, c); vec4 s = at(Sp, c); vec4 pp = at(P, c);
+    for (int i = 0; i < 16; i++){
+      if (i >= n) break;
+      float r = prm[i].x;
+      float d = sdSeg(p, seg[i].xy, seg[i].zw);
+      float fall = 1.0 - smoothstep(r * 0.45, r, d);
+      if (fall <= 0.0) continue;
+      // a dry pen catches only the paper's peaks
+      fall *= smoothstep(prm[i].w - 0.1, prm[i].w + 0.1, pp.x + 0.35 * (pp.w - 0.5));
+      a.x += prm[i].y * fall;
+      s.rgb += pig * prm[i].z * fall;
+      a.w = max(a.w, fall);
+    }
+    oA = a; oS = s;
+  }`;
+
+  const FS_SPLAT_V = COMMON + `
+  uniform sampler2D V; uniform int n; uniform vec4 seg[16]; uniform vec4 prm[16]; out vec4 o;
+  float sdSeg(vec2 p, vec2 a, vec2 b){ vec2 pa = p - a, ba = b - a; float h = clamp(dot(pa, ba) / max(dot(ba, ba), 1e-6), 0.0, 1.0); return length(pa - ba * h); }
+  void main(){
+    ivec2 c = ivec2(gl_FragCoord.xy); vec2 p = gl_FragCoord.xy; vec2 v = at(V, c).xy;
+    for (int i = 0; i < 16; i++){
+      if (i >= n) break;
+      vec2 ba = seg[i].zw - seg[i].xy; float L = length(ba);
+      if (L < 1e-3) continue;
+      float r = prm[i].x * 1.4;
+      float fall = 1.0 - smoothstep(r * 0.4, r, sdSeg(p, seg[i].xy, seg[i].zw));
+      v += (ba / L) * min(L, 10.0) * 0.035 * fall;   // the nib drags wet ink along
+    }
+    o = vec4(v, 0.0, 0.0);
+  }`;
+
+  const FS_VEL = COMMON + `
+  uniform sampler2D A, V, P;
+  uniform float grav, slope, edgePush, visc, damp, maxV;
+  out vec4 o;
+  void main(){
+    ivec2 c = ivec2(gl_FragCoord.xy);
+    float w = at(A, c).x;
+    float wet = smoothstep(0.003, 0.03, w);
+    if (wet <= 0.0){ o = vec4(0.0); return; }
+    ivec2 L = c - ivec2(1, 0), R = c + ivec2(1, 0), D = c - ivec2(0, 1), U = c + ivec2(0, 1);
+    float wL = at(A, L).x, wR = at(A, R).x, wD = at(A, D).x, wU = at(A, U).x;
+    float hL = at(P, L).x, hR = at(P, R).x, hD = at(P, D).x, hU = at(P, U).x;
+    vec2 g = 0.5 * vec2((wR + slope * hR) - (wL + slope * hL), (wU + slope * hU) - (wD + slope * hD));
+    vec2 gw = 0.5 * vec2(smoothstep(0.003, 0.03, wR) - smoothstep(0.003, 0.03, wL), smoothstep(0.003, 0.03, wU) - smoothstep(0.003, 0.03, wD));
+    vec2 v = at(V, c).xy;
+    vec2 va = bil(V, gl_FragCoord.xy - v).xy;
+    vec2 lap = 0.25 * (at(V, L).xy + at(V, R).xy + at(V, D).xy + at(V, U).xy);
+    vec2 nv = mix(va, lap, visc);
+    nv += -grav * g - edgePush * gw;
+    nv *= damp * wet;
+    float m = length(nv); if (m > maxV) nv *= maxV / m;
+    o = vec4(nv, 0.0, 0.0);
+  }`;
+
+  const FS_TRANS = COMMON + `
+  uniform sampler2D A, Sp, Dp, V, P;
+  uniform float dCap, thrBase, thrFibre, dampEase, filt, evap, edgeEvap, dep, gran, edgeDep, lift, dampDecay;
+  uniform vec3 granPig;
+  layout(location = 0) out vec4 oA; layout(location = 1) out vec4 oS; layout(location = 2) out vec4 oD;
+  const float WDRY = 0.004;
+  float thr(vec4 pp, float s){ return (thrBase + thrFibre * (1.0 - pp.z) + 0.09 * (pp.w - 0.5)) * (1.0 - dampEase * s); }
+  void main(){
+    ivec2 c = ivec2(gl_FragCoord.xy);
+    vec4 a = at(A, c); vec4 pp = at(P, c); vec2 v = at(V, c).xy;
+    vec3 si = at(Sp, c).rgb, di = at(Dp, c).rgb;
+    float wi = a.x, thri = thr(pp, a.w);
+    vec3 ci = si / max(wi, 1e-4);
+
+    // capillary exchange with the four neighbours (symmetric, so water and paint are conserved)
+    // eight neighbours (diagonals weighted less), so fronts spread round rather than in steps
+    float dW = 0.0, dry = 0.0; vec3 dP = vec3(0.0);
+    ivec2 N[8] = ivec2[8](ivec2(-1, 0), ivec2(1, 0), ivec2(0, -1), ivec2(0, 1), ivec2(-1, -1), ivec2(1, -1), ivec2(-1, 1), ivec2(1, 1));
+    for (int k = 0; k < 8; k++){
+      float wk = k < 4 ? 1.0 : 0.5;
+      ivec2 q = c + N[k];
+      vec4 aj = at(A, q); vec4 pj = at(P, q);
+      float wj = aj.x, thrj = thr(pj, aj.w);
+      if (wj < WDRY) dry += wk / 6.0;
+      float dw = wj - wi;
+      bool open = dw > 0.0 ? (wi > WDRY || wj > thri) : (wj > WDRY || wi > thrj);
+      if (!open) continue;
+      float f = dCap * wk * 0.667 * min(pp.y, pj.y) * dw;
+      dW += f;
+      vec3 cj = at(Sp, q).rgb / max(wj, 1e-4);
+      dP += f * (f > 0.0 ? cj : ci) * filt;
+    }
+
+    // flow within the wet area (advection)
+    float wet = smoothstep(0.003, 0.03, wi);
+    vec2 back = gl_FragCoord.xy - v;
+    float w = mix(wi, (wet > 0.0 ? bil(A, back).x : wi), wet) + dW;
+    vec3 p = mix(si, (wet > 0.0 ? bil(Sp, back).rgb : si), wet) + dP;
+    w = max(w, 0.0); p = max(p, vec3(0.0));
+
+    float edge = dry * wet;
+    w = max(0.0, w - evap * (1.0 + edgeEvap * edge));
+
+    // paint settles into the paper: faster as the water thins, in the hollows (by pigment), and at the edges
+    vec3 settle = (dep + gran * granPig * (1.0 - pp.x)) * (1.0 + edgeDep * edge) * mix(5.0, 1.0, smoothstep(0.0, 0.08, w));
+    vec3 dp = p * min(vec3(1.0), settle);
+    if (w < 0.0015){ dp = p; w = 0.0; }
+    // re-wetting lifts a little paint back into the water (blooms, backruns)
+    vec3 lp = di * lift * smoothstep(0.03, 0.25, w);
+    p += lp - dp; vec3 d = di + dp - lp;
+
+    float s = max(a.w - dampDecay, smoothstep(0.0, 0.05, w));
+    oA = vec4(w, 0.0, 0.0, s); oS = vec4(p, 0.0); oD = vec4(d, 0.0);
+  }`;
+
+  const FS_RENDER = COMMON + `
+  uniform sampler2D A, Sp, Dp, S; uniform float scale, dpr, strength, granVis; uniform mat3 K; uniform vec3 granPig; uniform vec2 simRes;
+  out vec4 o;
+  void main(){
+    vec2 css = gl_FragCoord.xy / dpr;
+    vec2 sp = css * scale;
+    float w = bil(A, sp).x;
+    vec3 p = bil(Sp, sp).rgb, d = bil(Dp, sp).rgb;
+    vec4 sh = texture(S, gl_FragCoord.xy / vec2(textureSize(S, 0)));
+    vec3 paperCol = vec3(0.945, 0.925, 0.890);
+    paperCol *= 0.985 + 0.05 * (sh.r - 0.6);           // cold-press relief, very soft
+    paperCol *= 1.0 - 0.012 * (sh.b - 0.5);            // fine speckle
+    float wetness = smoothstep(0.004, 0.06, w);
+    paperCol *= 1.0 - 0.055 * wetness;                  // wet paper darkens a little
+    // granulation: pigment sits in the hollows, more for granulating pigments
+    vec3 g = 1.0 + ((0.45 + 1.1 * (1.0 - sh.g)) - 1.0) * granVis * granPig;
+    vec3 amt = d * g + p * 0.9;
+    vec3 col = paperCol * exp(-(K * amt) * strength);
+    col += wetness * 0.018 * (sh.r - 0.4);              // faint sheen on wet paint and water
+    o = vec4(col, 1.0);
+  }`;
+
+  const FS_COPY = COMMON + `
+  uniform sampler2D src; uniform ivec2 off; out vec4 o;
+  void main(){ ivec2 c = ivec2(gl_FragCoord.xy) - off; ivec2 r = textureSize(src, 0);
+    o = (c.x >= 0 && c.y >= 0 && c.x < r.x && c.y < r.y) ? texelFetch(src, c, 0) : vec4(0.0); }`;
+
+  // ---- GL plumbing ----
+  function sh(type, src) { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; }
+  function prog(fs) { const p = gl.createProgram(); gl.attachShader(p, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(p, sh(gl.FRAGMENT_SHADER, fs));
+    gl.bindAttribLocation(p, 0, 'pos'); gl.linkProgram(p);
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+    const u = {}; const n = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS);
+    for (let i = 0; i < n; i++) { const info = gl.getActiveUniform(p, i); const name = info.name.replace(/\[0\]$/, ''); u[name] = gl.getUniformLocation(p, info.name); }
+    return { p, u }; }
+
+  let P;
+  try {
+    P = { paper: prog(FS_PAPER), shade: prog(FS_SHADE), splatA: prog(FS_SPLAT_A), splatV: prog(FS_SPLAT_V),
+          vel: prog(FS_VEL), trans: prog(FS_TRANS), render: prog(FS_RENDER), copy: prog(FS_COPY) };
+  } catch (err) { console.error(err); window.__inkReady = false; return; }
+
+  const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+
+  function tex(w, h, internal, format, type, filter) {
+    const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
+    gl.texImage2D(gl.TEXTURE_2D, 0, internal, w, h, 0, format, type, null);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    const fb = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, t, 0);
+    return { t, fb, w, h, id: ++texId };
+  }
+  let texId = 0;
+  const fbCache = new Map();
+  function mrt(list) {
+    const key = list.map(t => t.id).join(',');
+    let fb = fbCache.get(key);
+    if (!fb) {
+      fb = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+      list.forEach((t, i) => gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + i, gl.TEXTURE_2D, t.t, 0));
+      gl.drawBuffers(list.map((_, i) => gl.COLOR_ATTACHMENT0 + i));
+      fbCache.set(key, fb);
+    }
+    return fb;
+  }
+  const f32 = (w, h) => tex(w, h, gl.RGBA32F, gl.RGBA, gl.FLOAT, gl.NEAREST);
+
+  function run(pr, target, binds, set) {
+    gl.useProgram(pr.p);
+    let unit = 0;
+    for (const [name, t] of Object.entries(binds)) { gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, t.t); gl.uniform1i(pr.u[name], unit); unit++; }
+    if (set) set(pr.u);
+    if (Array.isArray(target)) { gl.bindFramebuffer(gl.FRAMEBUFFER, mrt(target)); gl.viewport(0, 0, target[0].w, target[0].h); }
+    else if (target) { gl.bindFramebuffer(gl.FRAMEBUFFER, target.fb); gl.viewport(0, 0, target.w, target.h); }
+    else { gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, cv.width, cv.height); }
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  }
+
+  // ---- Sizing ----
+  let W = 0, H = 0, dpr = 1, scale = 1, SW = 0, SH = 0;
+  let A0, A1, V0, V1, PT, ST, S0, S1, D0, D1;
+  function makeSim() {
+    const nd = Math.min(2, window.devicePixelRatio || 1);
+    const nw = window.innerWidth, nh = window.innerHeight;
+    if (nw === W && nh === H && nd === dpr && A0) return;
+    const oldA = A0, oldS = S0, oldD = D0, oldSH = SH, oldScale = scale;
+    W = nw; H = nh; dpr = nd;
+    scale = Math.min(1, Math.sqrt(1.7e6 / (W * H)));
+    SW = Math.max(1, Math.round(W * scale)); SH = Math.max(1, Math.round(H * scale));
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    fbCache.clear();
+    const nA0 = f32(SW, SH), nA1 = f32(SW, SH), nS0 = f32(SW, SH), nS1 = f32(SW, SH), nD0 = f32(SW, SH), nD1 = f32(SW, SH);
+    V0 = f32(SW, SH); V1 = f32(SW, SH); PT = f32(SW, SH);
+    ST = tex(cv.width, cv.height, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, gl.LINEAR);
+    for (const t of [nA0, nA1, nS0, nS1, nD0, nD1, V0, V1]) { gl.bindFramebuffer(gl.FRAMEBUFFER, t.fb); gl.viewport(0, 0, SW, SH); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); }
+    run(P.paper, PT, {}, u => { gl.uniform1f(u.scale, scale); gl.uniform1f(u.cssH, H); });
+    run(P.shade, ST, {}, u => { gl.uniform1f(u.res, dpr); gl.uniform1f(u.cssH, H); });
+    if (oldA && Math.abs(oldScale - scale) < 1e-6) {
+      // keep the drawing anchored to the top-left
+      run(P.copy, nA0, { src: oldA }, u => gl.uniform2i(u.off, 0, SH - oldSH));
+      run(P.copy, nS0, { src: oldS }, u => gl.uniform2i(u.off, 0, SH - oldSH));
+      run(P.copy, nD0, { src: oldD }, u => gl.uniform2i(u.off, 0, SH - oldSH));
+    }
+    A0 = nA0; A1 = nA1; S0 = nS0; S1 = nS1; D0 = nD0; D1 = nD1;
+  }
+
+  // ---- Simulation step ----
+  const segs = [];   // pending: [x0,y0,x1,y1, r, water, ink, dryT] in sim px
+  function splat() {
+    while (segs.length) {
+      const chunk = segs.splice(0, 16);
+      const sArr = new Float32Array(64), pArr = new Float32Array(64);
+      chunk.forEach((s, i) => { sArr.set(s.slice(0, 4), i * 4); pArr.set(s.slice(4, 8), i * 4); });
+      run(P.splatA, [A1, S1], { A: A0, Sp: S0, P: PT }, u => {
+        gl.uniform1i(u.n, chunk.length); gl.uniform4fv(u.seg, sArr); gl.uniform4fv(u.prm, pArr);
+        gl.uniform3f(u.pig, pigment === 0 ? 1 : 0, pigment === 1 ? 1 : 0, pigment === 2 ? 1 : 0);
+      });
+      [A0, A1] = [A1, A0]; [S0, S1] = [S1, S0];
+      run(P.splatV, V1, { V: V0 }, u => { gl.uniform1i(u.n, chunk.length); gl.uniform4fv(u.seg, sArr); gl.uniform4fv(u.prm, pArr); });
+      [V0, V1] = [V1, V0];
+    }
+  }
+  function step() {
+    run(P.vel, V1, { A: A0, V: V0, P: PT }, u => {
+      gl.uniform1f(u.grav, T.grav); gl.uniform1f(u.slope, T.slope); gl.uniform1f(u.edgePush, T.edgePush);
+      gl.uniform1f(u.visc, T.visc); gl.uniform1f(u.damp, T.damp); gl.uniform1f(u.maxV, T.maxV);
+    });
+    [V0, V1] = [V1, V0];
+    run(P.trans, [A1, S1, D1], { A: A0, Sp: S0, Dp: D0, V: V0, P: PT }, u => {
+      gl.uniform3fv(u.granPig, GRAN_PIG);
+      gl.uniform1f(u.dCap, T.dCap); gl.uniform1f(u.thrBase, T.thrBase); gl.uniform1f(u.thrFibre, T.thrFibre);
+      gl.uniform1f(u.dampEase, T.dampEase); gl.uniform1f(u.filt, T.filter); gl.uniform1f(u.evap, T.evap);
+      gl.uniform1f(u.edgeEvap, T.edgeEvap); gl.uniform1f(u.dep, T.dep); gl.uniform1f(u.gran, T.gran);
+      gl.uniform1f(u.edgeDep, T.edgeDep); gl.uniform1f(u.lift, T.lift); gl.uniform1f(u.dampDecay, T.dampDecay);
+    });
+    [A0, A1] = [A1, A0]; [S0, S1] = [S1, S0]; [D0, D1] = [D1, D0];
+  }
+  function render() {
+    run(P.render, null, { A: A0, Sp: S0, Dp: D0, S: ST }, u => {
+      gl.uniform1f(u.scale, scale); gl.uniform1f(u.dpr, dpr); gl.uniform1f(u.strength, T.strength);
+      gl.uniformMatrix3fv(u.K, false, KMAT); gl.uniform3fv(u.granPig, GRAN_PIG);
+      gl.uniform1f(u.granVis, T.granVis); gl.uniform2f(u.simRes, SW, SH);
+    });
+  }
+
+  // ---- The pen ----
+  const PEN = {
+    width: 3.2,        // CSS px, slow line at full ink
+    thin: 0.38,        // fast lines narrow to this fraction
+    flow: 0.22,        // water depth laid down at slow speed
+    fastFlow: 0.12,    // ... and at speed
+    pool: 0.9,         // water added per second while the pen rests on the paper
+    poolDelay: 450,    // ms of stillness before ink starts to pool
+    startBlot: 0.2,    // bead of ink where the pen first touches (0 = none, 1 = strong)
+    use: 0.0016,       // how quickly the pen runs out
+    refill: 0.45,      // reservoir refilled per second while lifted
+    conc: 1.15,        // ink in the water
+    concVar: 0.5,      // how much that changes from stroke to stroke
+  };
+  let reservoir = 1, drawing = false, pid = null, last = null, lastT = 0, speed = 0;
+  let strokeConc = 1, moved = false, lastFrame = performance.now(), lastActivity = 0, running = false;
+  let pressure = 1, lastMoveT = 0;
+
+  function penParams(sn) {
+    const R = reservoir;
+    const r = PEN.width * (1 - (1 - PEN.thin) * sn) * (0.7 + 0.3 * R) * (0.6 + 0.4 * pressure);
+    const water = (PEN.flow + (PEN.fastFlow - PEN.flow) * sn) * (0.3 + 0.7 * R) * (0.7 + 0.3 * pressure);
+    const dryT = Math.max(-1, Math.min(0.85, 0.75 - R * 1.5 + sn * 0.45));
+    return { r: Math.max(0.9, r * scale) , water, ink: water * strokeConc, dryT };
+  }
+  function toSim(x, y) { return [x * scale, (H - y) * scale]; }
+
+  function addSegment(x0, y0, x1, y1, sn) {
+    const q = penParams(sn);
+    const [a, b] = toSim(x0, y0), [c, d] = toSim(x1, y1);
+    const len = Math.hypot(x1 - x0, y1 - y0);
+    // each cell is crossed by about (2r / len) overlapping stamps; scale so it receives one stamp's worth
+    const k = Math.min(1, len / (1.6 * q.r / scale));
+    segs.push([a, b, c, d, q.r, q.water * k, q.ink * k, q.dryT]);
+    reservoir = Math.max(0.04, reservoir - q.water * len * (q.r / scale) * PEN.use);
+  }
+
+  cv.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    drawing = true; pid = e.pointerId; moved = false;
+    try { cv.setPointerCapture(e.pointerId); } catch (_) {}
+    strokeConc = PEN.conc + Math.random() * PEN.concVar;   // each dip of the pen carries slightly different ink
+    pressure = e.pointerType === 'pen' && e.pressure > 0 ? 0.3 + e.pressure : 1;
+    last = { x: e.clientX, y: e.clientY }; lastT = e.timeStamp; speed = 0; lastMoveT = performance.now();
+    // touch down: a small bead of ink, set by the Start blot slider
+    if (PEN.startBlot > 0) {
+      const q = penParams(0);
+      const [a, b] = toSim(e.clientX, e.clientY);
+      const k = 1.2 * PEN.startBlot;
+      segs.push([a, b, a, b, q.r * (0.7 + 0.45 * PEN.startBlot), q.water * k, q.ink * k, q.dryT]);
+    }
+    kick(); e.preventDefault();
+  });
+  cv.addEventListener('pointermove', e => {
+    if (!drawing || e.pointerId !== pid) return;
+    const list = (e.getCoalescedEvents && e.getCoalescedEvents().length) ? e.getCoalescedEvents() : [e];
+    for (const ev of list) {
+      const dx = ev.clientX - last.x, dy = ev.clientY - last.y, dist = Math.hypot(dx, dy);
+      if (dist < 0.75) continue;
+      const dt = Math.max(1, ev.timeStamp - lastT);
+      speed += (dist / dt - speed) * 0.3;
+      if (ev.pointerType === 'pen' && ev.pressure > 0) pressure = 0.3 + ev.pressure;
+      const sn = Math.min(1, speed / 1.5);
+      addSegment(last.x, last.y, ev.clientX, ev.clientY, sn);
+      last = { x: ev.clientX, y: ev.clientY }; lastT = ev.timeStamp; moved = true; lastMoveT = performance.now();
+    }
+    kick();
+  });
+  function end(e) {
+    if (!drawing || (e && e.pointerId !== pid)) return;
+    drawing = false; pid = null;
+    // a quick flick can throw a few drops off the nib
+    const sn = Math.min(1, speed / 1.5);
+    if (sn > 0.75 && reservoir > 0.35 && Math.random() < 0.8) {
+      const n = 1 + Math.floor(Math.random() * 3);
+      for (let i = 0; i < n; i++) {
+        const dist = 10 + Math.random() * 34, jitter = (Math.random() - 0.5) * 10;
+        const dir = lastDir;
+        const x = last.x + dir[0] * dist - dir[1] * jitter, y = last.y + dir[1] * dist + dir[0] * jitter;
+        const [a, b] = toSim(x, y);
+        const r = (0.7 + Math.random() * 1.6) * scale;
+        segs.push([a, b, a, b, Math.max(0.9, r), 0.35, 0.35 * strokeConc, -1]);
+      }
+    }
+    kick();
+  }
+  let lastDir = [1, 0];
+  cv.addEventListener('pointermove', e => {
+    if (!drawing) return;
+    const dx = e.movementX || 0, dy = e.movementY || 0, L = Math.hypot(dx, dy);
+    if (L > 0.5) lastDir = [dx / L, dy / L];
+  });
+  cv.addEventListener('pointerup', end);
+  cv.addEventListener('pointercancel', end);
+  cv.addEventListener('lostpointercapture', end);
+
+  // ---- Loop ----
+  function frame(now) {
+    const dt = Math.min(0.1, (now - lastFrame) / 1000); lastFrame = now;
+    if (drawing) {
+      const still = now - lastMoveT - PEN.poolDelay;
+      if (!moved && still > 0 && PEN.pool > 0) {
+        // resting on the paper: ink keeps flowing into a pool, building up gently
+        const q = penParams(0);
+        const [a, b] = toSim(last.x, last.y);
+        const ramp = Math.min(1, still / 700);
+        const amt = PEN.pool * dt * ramp * (0.3 + 0.7 * reservoir);
+        segs.push([a, b, a, b, q.r * 1.25, amt, amt * strokeConc, -1]);
+        reservoir = Math.max(0.04, reservoir - 0.25 * dt);
+      }
+      moved = false;
+      lastActivity = now;
+    } else {
+      reservoir = Math.min(1, reservoir + PEN.refill * dt);
+    }
+    if (segs.length) { splat(); lastActivity = now; }
+    if (now - lastActivity < IDLE_MS) for (let i = 0; i < T.substeps; i++) step();
+    render();
+    if (now - lastActivity < IDLE_MS || drawing) requestAnimationFrame(frame);
+    else running = false;
+  }
+  function kick() { if (!running) { running = true; lastFrame = performance.now(); requestAnimationFrame(frame); } }
+
+  makeSim();
+  render();
+  window.addEventListener('resize', () => { makeSim(); render(); kick(); });
+
+  // exposed for tuning from the console
+  window.inkTune = T; window.inkPen = PEN;
+  window.inkRender = () => render();
+
+  // ---- Palette: three swatches in the top bar ----
+  const pal = document.getElementById('palette');
+  if (pal && PIGMENTS.length > 1) {
+    const label = document.createElement('span'); label.className = 'name';
+    const btns = PIGMENTS.map((pg, i) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'swatch'; b.style.background = pg.swatch;
+      b.setAttribute('role', 'radio'); b.setAttribute('aria-label', pg.name); b.title = pg.name;
+      b.addEventListener('click', () => choose(i));
+      pal.appendChild(b); return b;
+    });
+    pal.appendChild(label);
+    function choose(i) {
+      pigment = i;
+      btns.forEach((b, j) => { b.setAttribute('aria-checked', String(j === i)); b.tabIndex = j === i ? 0 : -1; });
+      label.textContent = PIGMENTS[i].name;
+      setCursor(PIGMENTS[i].swatch);
+    }
+    pal.addEventListener('keydown', e => {
+      if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
+      const n = (pigment + (e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 1) + PIGMENTS.length) % PIGMENTS.length;
+      choose(n); btns[n].focus(); e.preventDefault();
+    });
+    choose(0);
+    pal.hidden = false;
+  }
+  window.inkClear = () => {
+    for (const t of [A0, A1, S0, S1, D0, D1, V0, V1]) { gl.bindFramebuffer(gl.FRAMEBUFFER, t.fb); gl.viewport(0, 0, SW, SH); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); }
+    render();
+  };
+})();
+</script>
+
+<script>
+/* ---------- Pencil on paper ----------
+   Built on the crayon-chart engine (value-noise paper grain, particles that skip the grain's low points,
+   pressure along the stroke), retuned for soft graphite: narrower, greyer, and building up on the tooth
+   with each pass, so the valleys of the paper stay light. */
+(() => {
+  if (window.__inkReady) return;   // the ink pen is running; the pencil is the fallback
+  const cv = document.getElementById('paper');
+  const ctx = cv.getContext('2d');
+
+  // ---- Tunables ----
+  const PENCIL = {
+    width: 5.2,        // CSS px at full pressure
+    density: 11,       // graphite specks per px of width
+    tooth: 0.56,       // grain threshold at light pressure (higher = more paper shows through)
+    bite: 0.36,        // how far pressure lowers that threshold
+    strength: 0.2,     // opacity of one speck at full pressure; passes build up on the tooth
+    taperIn: 26,       // px over which a stroke eases in
+    speedFade: 0.36,   // how much a fast mouse lightens the line
+    colour: [62, 62, 70]   // graphite: a cool, slightly blue grey
+  };
+  const TILE = 256;    // paper grain repeats every 256 CSS px
+  const RES = 2;       // grain samples per CSS px
+
+  // ---- Paper grain: tileable value noise (fine tooth + laid fibre + mottling) ----
+  function hash(x, y, s) { let h = (x * 374761393 + y * 668265263 + s * 1442695041) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; }
+  function tnoise(u, v, nx, ny, s) {   // u,v in tile units [0,1), lattice nx × ny, wraps
+    const x = u * nx, y = v * ny, xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+    const sm = t => t * t * (3 - 2 * t), a = sm(xf), b = sm(yf);
+    const X0 = ((xi % nx) + nx) % nx, X1 = (X0 + 1) % nx, Y0 = ((yi % ny) + ny) % ny, Y1 = (Y0 + 1) % ny;
+    const p = hash(X0, Y0, s), q = hash(X1, Y0, s), r = hash(X0, Y1, s), t = hash(X1, Y1, s);
+    return p + (q - p) * a + (r - p) * b + (p - q - r + t) * a * b;
+  }
+  const N = TILE * RES;
+  const grainMap = new Float32Array(N * N);
+  (function buildGrain() {
+    for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
+      const u = i / N, v = j / N;
+      const fine = tnoise(u, v, 160, 160, 1);           // ~1.6px tooth
+      const fine2 = tnoise(u, v, 96, 96, 2);            // ~2.7px
+      const fibre = tnoise(u, v, 40, 200, 3);           // laid fibre, slightly horizontal
+      const mottle = tnoise(u, v, 12, 12, 4);           // broad unevenness
+      grainMap[j * N + i] = 0.42 * fine + 0.26 * fine2 + 0.2 * fibre + 0.12 * mottle;
+    }
+    // stretch to 0..1 using the 1st and 99th percentiles
+    const sorted = Float32Array.from(grainMap).sort();
+    const lo = sorted[Math.floor(N * N * 0.01)], hi = sorted[Math.floor(N * N * 0.99)];
+    for (let k = 0; k < grainMap.length; k++) grainMap[k] = Math.min(1, Math.max(0, (grainMap[k] - lo) / (hi - lo)));
+  })();
+  function grain(x, y) {
+    const i = ((Math.floor(x * RES) % N) + N) % N, j = ((Math.floor(y * RES) % N) + N) % N;
+    return grainMap[j * N + i];
+  }
+
+  // Show the paper's tooth faintly on the page, aligned with the grain the pencil uses.
+  (function paperTexture() {
+    const c = document.createElement('canvas'); c.width = c.height = N;
+    const g = c.getContext('2d'), img = g.createImageData(N, N);
+    for (let k = 0; k < N * N; k++) {
+      const shade = Math.pow(1 - grainMap[k], 2.2);
+      img.data[k * 4] = 120; img.data[k * 4 + 1] = 108; img.data[k * 4 + 2] = 90;
+      img.data[k * 4 + 3] = Math.round(shade * 11);
+    }
+    g.putImageData(img, 0, 0);
+    document.body.style.backgroundImage = `url(${c.toDataURL('image/png')})`;
+    document.body.style.backgroundSize = `${TILE}px ${TILE}px`;
+    document.body.style.backgroundPosition = '0 0';
+  })();
+
+  // ---- Pencil cursor: tip at the bottom-left, at the hotspot ----
+  // Outline pencil: white body, black line, solid black point. The point's open end is as wide as a mark
+  // (PENCIL.width), so the cursor shows the line it will draw.
+  const tipHalf = PENCIL.width / 2;            // half the mark width
+  const coneHalf = 5.5, coneLen = 16;          // body half-thickness and cone length (cursor px)
+  const tipLen = coneLen * tipHalf / coneHalf; // length of the black point at that width
+  const tipX = -6 + tipLen;
+  const pencilShapes = (stroke, sw) => `
+      <path d="M10 14.5 H41.5 Q44 14.5 44 17 V23 Q44 25.5 41.5 25.5 H10 Z" fill="#F1ECE3" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round"/>
+      <path d="M10 14.5 L-6 20 L10 25.5 Z" fill="#F1ECE3" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round"/>
+      <path d="M-6 20 L${tipX} ${20 - tipHalf} L${tipX} ${20 + tipHalf} Z" fill="${stroke}" stroke="${stroke}" stroke-width="${sw * 0.5}" stroke-linejoin="round"/>
+      <line x1="10" y1="20" x2="41" y2="20" stroke="${stroke}" stroke-width="${sw * 0.85}" stroke-linecap="round"/>`;
+  const cursorSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><g transform="rotate(-45 20 20)"><path d="M-3.5 17.8 L37 15.9 A4.1 4.1 0 0 1 37 24.1 L-3.5 22.2 A2.2 2.2 0 0 1 -3.5 17.8 Z" fill="#111" stroke="#F1ECE3" stroke-opacity="0.85" stroke-width="1.2" paint-order="stroke" stroke-linejoin="round"/></g></svg>`;
+  const cursor = `url("data:image/svg+xml,${encodeURIComponent(cursorSVG)}") 2 38, crosshair`;
+  cv.style.cursor = cursor;
+  document.documentElement.style.cursor = cursor;
+
+  // ---- Canvas sizing (keeps the drawing when the window changes) ----
+  let dpr = 1, W = 0, H = 0;
+  function size() {
+    const nd = Math.min(2, window.devicePixelRatio || 1);
+    const nw = window.innerWidth, nh = window.innerHeight;
+    if (nw === W && nh === H && nd === dpr) return;
+    let keep = null;
+    if (cv.width && cv.height) { keep = document.createElement('canvas'); keep.width = cv.width; keep.height = cv.height; keep.getContext('2d').drawImage(cv, 0, 0); }
+    const oldDpr = dpr;
+    dpr = nd; W = nw; H = nh;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    if (keep) ctx.drawImage(keep, 0, 0, keep.width * dpr / oldDpr, keep.height * dpr / oldDpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  size();
+  window.addEventListener('resize', size);
+
+  // ---- Deposit graphite at one point of the stroke ----
+  let seed = 1;
+  function rand() { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }
+  const [cr, cg, cb] = PENCIL.colour;
+  ctx.fillStyle = `rgb(${cr},${cg},${cb})`;
+
+  function deposit(x, y, nx, ny, w, pr) {
+    const half = w / 2;
+    const count = Math.max(2, Math.round(w * PENCIL.density));
+    const sz = 1 / dpr + 0.35;   // a speck: just over one device pixel
+    for (let c = 0; c < count; c++) {
+      const d = (rand() * 2 - 1) * half;
+      const along = (rand() - 0.5) * 0.9;
+      const px = x + nx * d - ny * along, py = y + ny * d + nx * along;
+      const edge = 1 - Math.pow(Math.abs(d) / half, 2);
+      const g = grain(px, py);
+      // graphite catches on the paper's high points; pressure pushes it further into the valleys
+      const thresh = PENCIL.tooth + (1 - edge) * 0.28 - pr * PENCIL.bite + (rand() - 0.5) * 0.08;
+      if (g < thresh) {
+        // just below the tooth's peaks: a whisper of graphite, so the line reads as continuous
+        if (g > thresh - 0.2 && edge > 0.25) { ctx.globalAlpha = PENCIL.strength * 0.22 * pr * edge; ctx.fillRect(px, py, sz, sz); }
+        continue;
+      }
+      const a = PENCIL.strength * Math.min(1, (g - thresh) * 4) * (0.3 + 0.7 * edge) * (0.35 + 0.65 * pr);
+      ctx.globalAlpha = a;
+      ctx.fillRect(px, py, sz, sz);
+    }
+    // a faint continuous tone under heavy pressure, as graphite smears into the paper
+    if (pr > 0.7) {
+      ctx.globalAlpha = (pr - 0.7) * 0.03;
+      ctx.beginPath(); ctx.arc(x, y, half * 0.7, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // ---- Stroke state: smooth the pointer path, resample evenly, vary pressure ----
+  const STEP = 0.5;          // resample every half pixel
+  let drawing = false, pointerId = null;
+  let pts = [];              // last three raw points
+  let travelled = 0, residual = 0, lastOut = null;
+  let pr = 0.6, lastT = 0, isPen = false, wob = 0, phase = 0;
+
+  function pressureFrom(e, speed) {
+    if (isPen && e.pressure > 0) return Math.min(1, 0.15 + e.pressure * 0.95);
+    // mouse / finger: slower is heavier, faster is lighter
+    const target = Math.max(0.2, Math.min(0.85, 0.9 - speed * PENCIL.speedFade));
+    pr += (target - pr) * 0.18;
+    return pr;
+  }
+
+  function emit(x, y, p) {
+    if (!lastOut) { lastOut = { x, y }; return; }
+    const dx = x - lastOut.x, dy = y - lastOut.y, L = Math.hypot(dx, dy);
+    if (L < 0.0001) return;
+    const tx = dx / L, ty = dy / L, nx = -ty, ny = tx;
+    let need = STEP - residual, rem = L, cx = lastOut.x, cy = lastOut.y;
+    while (rem >= need) {
+      const f = need / rem; cx += (x - cx) * f; cy += (y - cy) * f; rem -= need; need = STEP;
+      travelled += STEP;
+      const ramp = Math.min(1, travelled / PENCIL.taperIn);
+      // the hand presses harder and lighter as it goes
+      const swell = 0.78 + 0.22 * (0.5 + 0.5 * Math.sin(travelled * 0.021 + phase) * Math.sin(travelled * 0.0067 + phase * 2.3));
+      const pp = p * swell * (0.3 + 0.7 * Math.pow(ramp, 0.7));
+      // tiny hand tremor, so ruled-straight drags still read as drawn
+      wob += (rand() - 0.5) * 0.08; wob *= 0.96;
+      const w = PENCIL.width * (0.55 + 0.6 * pp) * (0.9 + 0.2 * Math.pow(ramp, 0.5));
+      deposit(cx + nx * wob, cy + ny * wob, nx, ny, w, pp);
+    }
+    residual = STEP - need + rem;
+    lastOut = { x, y };
+  }
+
+  // Quadratic smoothing through midpoints: each new point closes the curve from the previous midpoint.
+  function addPoint(x, y, p) {
+    pts.push({ x, y, p });
+    if (pts.length < 3) {
+      if (pts.length === 1) { lastOut = { x, y }; }
+      return;
+    }
+    if (pts.length > 3) pts.shift();
+    const [a, b, c] = pts;
+    const m1 = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, m2 = { x: (b.x + c.x) / 2, y: (b.y + c.y) / 2 };
+    const segs = Math.max(2, Math.ceil(Math.hypot(m2.x - m1.x, m2.y - m1.y) / 2));
+    for (let i = 1; i <= segs; i++) {
+      const t = i / segs, u = 1 - t;
+      const qx = u * u * m1.x + 2 * u * t * b.x + t * t * m2.x;
+      const qy = u * u * m1.y + 2 * u * t * b.y + t * t * m2.y;
+      emit(qx, qy, b.p + (c.p - b.p) * t);
+    }
+  }
+
+  cv.addEventListener('pointerdown', e => {
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+    drawing = true; pointerId = e.pointerId; isPen = e.pointerType === 'pen';
+    try { cv.setPointerCapture(e.pointerId); } catch (_) {}
+    seed = (Math.random() * 4294967296) >>> 0;
+    pts = []; travelled = 0; residual = 0; lastOut = null; wob = 0; pr = 0.7; lastT = e.timeStamp; phase = Math.random() * 6.28;
+    addPoint(e.clientX, e.clientY, pressureFrom(e, 0));
+    // a press with no drag still leaves a small mark
+    deposit(e.clientX, e.clientY, 1, 0, PENCIL.width * 0.6, 0.45);
+    e.preventDefault();
+  });
+
+  cv.addEventListener('pointermove', e => {
+    if (!drawing || e.pointerId !== pointerId) return;
+    const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+    for (const ev of (events.length ? events : [e])) {
+      const last = pts[pts.length - 1];
+      const dt = Math.max(1, ev.timeStamp - lastT);
+      const dist = last ? Math.hypot(ev.clientX - last.x, ev.clientY - last.y) : 0;
+      if (dist < 0.6) continue;
+      lastT = ev.timeStamp;
+      addPoint(ev.clientX, ev.clientY, pressureFrom(ev, dist / dt));
+    }
+  });
+
+  function end(e) {
+    if (!drawing || (e && e.pointerId !== pointerId)) return;
+    // finish the curve to the last point, lifting off lightly
+    if (pts.length >= 2) {
+      const b = pts[pts.length - 1];
+      const prevP = b.p;
+      addPoint(b.x + 0.01, b.y + 0.01, prevP * 0.5);
+    }
+    drawing = false; pointerId = null;
+  }
+  cv.addEventListener('pointerup', end);
+  cv.addEventListener('pointercancel', end);
+  cv.addEventListener('lostpointercapture', end);
+})();
+</script>
+
+<script>
+/* Tap to show the purpose line on touch screens */
+(() => {
+  const n = document.getElementById('lp-name');
+  if (!n) return;
+  n.addEventListener('click', () => n.classList.toggle('open'));
+  document.addEventListener('pointerdown', e => { if (!n.contains(e.target)) n.classList.remove('open'); });
+})();
+
+</script>
+</body>
+</html>
