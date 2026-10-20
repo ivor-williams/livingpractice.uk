@@ -42,6 +42,7 @@
 @media (max-width: 600px) { :root { --gutter: 16px; } }  /* Mobile — 390 */
 
 html, body { height: 100%; }
+html { background: var(--ground); }
 body {
   background: var(--ground);
   color: var(--ink);
@@ -54,9 +55,10 @@ body {
 /* Sketchbook: the whole window is paper. The canvas sits under the type; the type lets the pencil through. */
 #paper {
   position: fixed;
-  inset: 0;
+  top: 0; left: 0;
   width: 100%;
   height: 100%;
+  height: 100lvh;   /* full screen height in Safari, including the area under its toolbar */
   display: block;
   z-index: 0;
   touch-action: none;
@@ -568,7 +570,7 @@ body {
   let A0, A1, V0, V1, PT, ST, S0, S1, D0, D1;
   function makeSim() {
     const nd = Math.min(2, window.devicePixelRatio || 1);
-    const nw = window.innerWidth, nh = window.innerHeight;
+    const nw = cv.clientWidth || window.innerWidth, nh = cv.clientHeight || window.innerHeight;
     if (nw === W && nh === H && nd === dpr && A0) return;
     const oldA = A0, oldS = S0, oldD = D0, oldSH = SH, oldScale = scale;
     W = nw; H = nh; dpr = nd;
@@ -884,7 +886,7 @@ body {
   let dpr = 1, W = 0, H = 0;
   function size() {
     const nd = Math.min(2, window.devicePixelRatio || 1);
-    const nw = window.innerWidth, nh = window.innerHeight;
+    const nw = cv.clientWidth || window.innerWidth, nh = cv.clientHeight || window.innerHeight;
     if (nw === W && nh === H && nd === dpr) return;
     let keep = null;
     if (cv.width && cv.height) { keep = document.createElement('canvas'); keep.width = cv.width; keep.height = cv.height; keep.getContext('2d').drawImage(cv, 0, 0); }
